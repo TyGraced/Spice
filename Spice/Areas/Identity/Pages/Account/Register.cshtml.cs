@@ -85,6 +85,9 @@ namespace Spice.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
+            string role = Request.Form["rdUserRole"].ToString();
+
+
             returnUrl = returnUrl ?? Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
@@ -121,7 +124,35 @@ namespace Spice.Areas.Identity.Pages.Account
                         await _roleManager.CreateAsync(new IdentityRole(SD.FrontDeskUser));
                     }
 
-                    await _userManager.AddToRoleAsync(user, SD.ManagerUser);
+                    if (role == SD.KitchenUser)
+                    {
+                        await _userManager.AddToRoleAsync(user, SD.KitchenUser);
+                    }
+                    else
+                    {
+
+                        if (role == SD.FrontDeskUser)
+                        {
+                            await _userManager.AddToRoleAsync(user, SD.FrontDeskUser);
+                        }
+                        else
+                        {
+
+                            if (role == SD.ManagerUser)
+                            {
+                                await _userManager.AddToRoleAsync(user, SD.ManagerUser);
+                            }
+                            else
+                            {
+                                await _userManager.AddToRoleAsync(user, SD.CustomerEndUser);
+                                await _signInManager.SignInAsync(user, isPersistent: false);
+                                return LocalRedirect(returnUrl);
+                            }
+                        }
+                    }
+
+                    return RedirectToAction("Index", "User", new { area = "Admin" });
+
 
                     _logger.LogInformation("User created a new account with password.");
 
@@ -142,8 +173,6 @@ namespace Spice.Areas.Identity.Pages.Account
                     //}
                     //else
                     //{
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
                     //}
                 }
                 foreach (var error in result.Errors)
