@@ -1,4 +1,8 @@
 ﻿@model Spice.Models.ViewModels.OrderDetailsCart
+@using Microsoft.Extensions.Options
+
+@inject IOptions<Spice.Utility.StripeSettings> Stripe
+
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -24,7 +28,7 @@
                     <div class="card-body">
                         <div class="container rounded p-2">
                             <div class="row">
-                                <div class="col-12 col-lg-6 pb-4">
+                                <div class="col-12 col-lg-8 pb-4">
                                     <div class="row">
                                         <h4 class="d-flex justify-content-between align-items-center mb-3">
                                             <span class="text-info">Pick-Up Details:</span>
@@ -72,7 +76,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-12 col-lg-5 offset-lg-1">
+                                <div class="col-12 col-lg-4">
                                     <h4 class="d-flex justify-content-between align-items-center mb-3">
                                         <span class="text-info">Order Summary:</span>
                                     </h4>
@@ -119,6 +123,22 @@
                     <div class="card-footer">
                         <div class="row">
                             <div class="col-12 col-md-4 offset-md-8">
+                                @{
+                                    var orderTotalForStripe = Model.OrderHeader.OrderTotal * 100;
+                                }
+                                <script src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+                                        data-key="@Stripe.Value.PublishableKey"
+                                        data-amount="@orderTotalForStripe"
+                                        data-name="Spice Restaurant"
+                                        data-label="Place Order"
+                                        data-description="Good Food, Good Mood."
+                                        data-locale="auto"
+                                        data-allow-remember-me="false"
+                                        data-image="https://stripe.com/img/documentation/checkout/marketplace.png">
+                                </script>
+                                <script>
+                                    document.getElementsByClassName("stripe-button-el")[0].style.display = 'none';
+                                </script>
                                 <button type="submit" id="btnPlaceOrder" onclick="return validateInput()" value="Place Order" class="btn btn-success form-control">Place Order</button>
                             </div>
                         </div>

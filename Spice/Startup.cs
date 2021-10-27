@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Spice.Data;
+using Spice.Service;
+using Spice.Utility;
+using Stripe;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +40,10 @@ namespace Spice
                 //.AddDefaultUI(UIFramework.Bootstrap)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.Configure<StripeSettings>(Configuration.GetSection("Stripe"));
+            services.AddSingleton<IEmailSender, EmailSender>();
+            services.Configure<EmailOptions>(Configuration);
+
             services.AddControllersWithViews();
             services.AddRazorPages().AddRazorRuntimeCompilation();
             services.ConfigureApplicationCookie(options =>
@@ -48,6 +56,18 @@ namespace Spice
 
                 options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
 
+            });
+
+            services.AddAuthentication().AddFacebook(facebookOptions =>
+            {
+                facebookOptions.AppId = "152572457028821";
+                facebookOptions.AppSecret = "eaa97450e4342d1046d136990ca709c3";
+            });
+
+            services.AddAuthentication().AddGoogle(googleOptions =>
+            {
+                googleOptions.ClientId = "159012596251-f8ossfpuutefvb4ne1rr5oi7i3sp6cub.apps.googleusercontent.com";
+                googleOptions.ClientSecret = "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";
             });
 
             services.AddSession(options =>
@@ -79,6 +99,8 @@ namespace Spice
             app.UseSession();
 
             app.UseRouting();
+
+            StripeConfiguration.ApiKey = Configuration.GetSection("Stripe")["SecretKey"];
 
             app.UseAuthentication();
             app.UseAuthorization();
