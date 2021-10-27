@@ -1,4 +1,7 @@
 ﻿@using Spice.Utility
+@using Microsoft.AspNetCore.Http
+
+@inject IHttpContextAccessor HttpContextAccessor
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +10,10 @@
     <title>@ViewData["Title"] - Spice</title>
 
     <environment include="Development">
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+        @*<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />*@
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+        <link rel="stylesheet" href="~/css/jquery-ui.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.13.18/jquery.timepicker.css" />
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
     </environment>
     <environment exclude="Development">
@@ -16,8 +22,9 @@
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute"
               crossorigin="anonymous"
               integrity="sha256-eSi1q2PG6J7g7ib17yAaWMcrr5GrtohYChqibrV7pBE=" />
+        <link rel="stylesheet" href="~/css/jquery-ui.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.13.18/jquery.timepicker.css" />
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
-
     </environment>
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
@@ -26,9 +33,9 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/mild.png"/>
-                    <img src="~/images/spicy.png"/>
-                    <img src="~/images/verySpicy.png"/>
+                    <img src="~/images/mild.png" />
+                    <img src="~/images/spicy.png" />
+                    <img src="~/images/verySpicy.png" />
                     <label class="text-info" style="cursor:pointer">Spice</label>
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -54,11 +61,55 @@
                                 </div>
                             </li>
                         }
-                        <li style="color:white">
-                            <a href="#" class="nav-link">
-                                <i class="fas fa-shopping-cart"></i> &nbsp; (0)
-                            </a>
-                        </li>
+
+                        @if (User.IsInRole(SD.ManagerUser) || User.IsInRole(SD.CustomerEndUser) || User.IsInRole(SD.FrontDeskUser) || User.IsInRole(SD.KitchenUser))
+                        {
+                            <li class="nav-item">
+                                <a asp-area="Customer" asp-controller="Order" asp-action="OrderHistory" class="nav-link">
+                                    Order History
+                                </a>
+                            </li>
+                        }
+
+
+                        @if (User.IsInRole(SD.ManagerUser) || User.IsInRole(SD.KitchenUser) || User.IsInRole(SD.FrontDeskUser))
+                        {
+                            <li class="nav-item dropdown text-white-50">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropDown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Orders
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropDownMenuLink">
+                                    @if (User.IsInRole(SD.KitchenUser) || User.IsInRole(SD.ManagerUser))
+                                    {
+                                        <a class="dropdown-item" asp-action="ManageOrder" asp-controller="Order" asp-area="Customer">Manage Order</a>
+                                    }
+                                    @if (User.IsInRole(SD.FrontDeskUser) || User.IsInRole(SD.ManagerUser))
+                                    {
+                                        <a class="dropdown-item" asp-action="OrderPickup" asp-controller="Order" asp-area="Customer">Order Pick-Up</a>
+                                    }
+                                </div>
+                            </li>
+                        }
+
+                        @if (HttpContextAccessor.HttpContext.Session.GetInt32(@SD.ssShoppingCartCount) != null)
+                        {
+                            <li style="color:white">
+                                <a asp-area="Customer" asp-controller="Cart" asp-action="Index" class="nav-link">
+                                    @{
+                                        var count = HttpContextAccessor.HttpContext.Session.GetInt32(@SD.ssShoppingCartCount);
+                                    }
+                                    <i class="fas fa-shopping-cart"></i> &nbsp; (@count)
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li style="color:white">
+                                <a href="#" class="nav-link">
+                                    <i class="fas fa-shopping-cart"></i> &nbsp; (0)
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -72,7 +123,7 @@
 
     <footer class="border-top pl-3 footer text-white-50" style="background-color: #343a40;">
         <div class="container">
-            &copy; 2021 - Spice 
+            &copy; 2021 - Spice
         </div>
     </footer>
 
@@ -80,6 +131,7 @@
         <script src="https://cdn.tiny.cloud/1/wqkqihbec7m976ogy09eeof303k3pt45j499fepimewslys7/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
+        <script src="~/js/jquery-ui.js"></script>
     </environment>
     <environment exclude="Development">
         <script src="https://cdn.tiny.cloud/1/wqkqihbec7m976ogy09eeof303k3pt45j499fepimewslys7/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
@@ -89,6 +141,8 @@
                 crossorigin="anonymous"
                 integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmKMRdAu8=">
         </script>
+
+        <script src="~/js/jquery-ui.js"></script>
     </environment>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @RenderSection("Scripts", required: false)
